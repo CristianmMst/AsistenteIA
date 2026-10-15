@@ -1,0 +1,28 @@
+## .NET / Visual Studio / MAUI
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.userprefs
+.vscode/
+*.rsuser
+**/Properties/launchSettings.json.user
+
+## Paquetes y artefactos de publicación
+*.apk
+*.aab
+*.keystore
+*.jks
+publish/
+entrega/
+
+## Secretos: nunca subir claves de la API
+.env
+*.env
+secrets.json
+appsettings.*.local.json
+
+## SO
+Thumbs.db
+.DS_Store
