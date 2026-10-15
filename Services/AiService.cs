@@ -119,7 +119,12 @@ public class AiService
         }
         catch (HttpRequestException ex)
         {
-            statusText = "Error de red";
+            statusText = $"Error de red: {ex.InnerException?.Message ?? ex.Message}";
+            _logger.LogWarning(ex, "Fallo de red al llamar {Url}", url);
+            if (IsCertificateError(ex))
+                throw new AiServiceException(
+                    "La red actual intercepta la conexión segura (certificado no válido, p. ej. un portal Wi-Fi). " +
+                    "Inicie sesión en el portal o use otra red.", ex.StatusCode);
             throw new AiServiceException(
                 "No fue posible contactar el servicio. Revise la conexión o intente más tarde.", ex.StatusCode);
         }
@@ -189,6 +194,20 @@ public class AiService
             _ => $"Error del servicio ({n})."
         };
         return new AiServiceException(message, code, apiCode);
+    }
+
+    private static bool IsCertificateError(Exception ex)
+    {
+        for (Exception? e = ex; e is not null; e = e.InnerException)
+        {
+            if (e is System.Security.Authentication.AuthenticationException) return true;
+            string m = e.Message;
+            if (m.Contains("not verified", StringComparison.OrdinalIgnoreCase)
+                || m.Contains("certificate", StringComparison.OrdinalIgnoreCase)
+                || m.Contains("SSL", StringComparison.Ordinal))
+                return true;
+        }
+        return false;
     }
 
     private static string PrettyOrRaw(string text)

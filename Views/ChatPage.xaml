@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="AsistenteIA.Views.ChatPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:AsistenteIA.ViewModels"
+    xmlns:m="clr-namespace:AsistenteIA.Models"
+    x:DataType="vm:ChatViewModel"
+    Title="Consultar IA">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12" MaximumWidthRequest="{StaticResource ContentMaxWidth}">
+
+            <Label Text="Asistente académico de IA" Style="{StaticResource PageTitle}" />
+
+            <!-- Aviso de ausencia de conexión (RF04) -->
+            <Border Style="{StaticResource Notice}" IsVisible="{Binding IsOffline}" Stroke="{StaticResource Danger}">
+                <Label Text="Sin conexión a internet. Podrá consultar el historial, pero no enviar consultas."
+                       Style="{StaticResource Body}" FontAttributes="Bold" />
+            </Border>
+
+            <Border Style="{StaticResource Notice}">
+                <Label Style="{StaticResource Caption}"
+                       Text="No ingrese datos personales, contraseñas, información confidencial ni documentos institucionales sensibles." />
+            </Border>
+
+            <!-- Plantilla de prompt (RF07) -->
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <Picker Title="Plantilla de prompt (opcional)"
+                        ItemsSource="{Binding Templates}"
+                        SelectedItem="{Binding SelectedTemplate}"
+                        ItemDisplayBinding="{Binding Name, x:DataType=m:PromptTemplate}"
+                        SemanticProperties.Description="Seleccionar plantilla de prompt académico" />
+                <Button Grid.Column="1" Text="Editar" Style="{StaticResource SecondaryButton}"
+                        Command="{Binding ManageTemplatesCommand}"
+                        SemanticProperties.Hint="Abre el administrador de plantillas" />
+            </Grid>
+
+            <!-- Prompt (RF01, RF02) -->
+            <Border Style="{StaticResource Card}" Padding="8">
+                <Editor Text="{Binding Prompt}"
+                        Placeholder="Escriba una consulta académica (mínimo 5 caracteres)"
+                        AutoSize="TextChanges" MinimumHeightRequest="110" MaximumHeightRequest="220"
+                        MaxLength="2100"
+                        SemanticProperties.Description="Consulta para la inteligencia artificial" />
+            </Border>
+            <Grid ColumnDefinitions="*,Auto">
+                <Label Text="{Binding ValidationMessage}" TextColor="{AppThemeBinding Light={StaticResource Danger}, Dark={StaticResource DangerDark}}"
+                       FontSize="13" IsVisible="{Binding ValidationMessage, Converter={StaticResource HasText}}" />
+                <Label Grid.Column="1" Text="{Binding CharCountText}" Style="{StaticResource Caption}"
+                       SemanticProperties.Description="Caracteres usados" />
+            </Grid>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <Picker Title="Categoría" ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory}"
+                        SemanticProperties.Description="Categoría de la consulta" />
+                <Label Grid.Column="1" Text="{Binding SelectedModel, StringFormat='Modelo: {0}'}"
+                       Style="{StaticResource Caption}" VerticalOptions="Center" LineBreakMode="TailTruncation" />
+            </Grid>
+
+            <!-- Acciones -->
+            <Grid ColumnDefinitions="2*,*" ColumnSpacing="10">
+                <Button Text="Consultar" Command="{Binding AskCommand}" Style="{StaticResource AccentButton}"
+                        SemanticProperties.Hint="Envía la consulta al servicio de IA" />
+                <Button Grid.Column="1" Text="Cancelar" Command="{Binding CancelCommand}"
+                        Style="{StaticResource DangerButton}"
+                        SemanticProperties.Hint="Cancela la consulta en curso" />
+            </Grid>
+
+            <!-- Estado de carga, respuesta o error (RF04) -->
+            <HorizontalStackLayout Spacing="10">
+                <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
+                                   HeightRequest="24" WidthRequest="24" Color="{StaticResource Tertiary}" />
+                <Label Text="{Binding StatusMessage}" TextColor="{Binding Status, Converter={StaticResource StatusColor}}"
+                       FontSize="14" VerticalOptions="Center" LineBreakMode="WordWrap" MaximumWidthRequest="680"
+                       SemanticProperties.Description="Estado de la consulta" />
+            </HorizontalStackLayout>
+
+            <!-- Respuesta -->
+            <Border Style="{StaticResource Card}" IsVisible="{Binding HasAnswer}">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Respuesta" Style="{StaticResource SectionTitle}" />
+                    <Label Text="{Binding Answer}" Style="{StaticResource Body}"
+                           SemanticProperties.Description="Respuesta de la inteligencia artificial" />
+                    <Label Text="{Binding ResultInfo}" Style="{StaticResource Caption}" FontSize="11" />
+                    <Label Text="⚠ Generado con IA: puede contener errores. Verifique con fuentes confiables."
+                           Style="{StaticResource Caption}" FontAttributes="Italic" />
+                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                        <Button Text="Guardar" Command="{Binding SaveCommand}"
+                                SemanticProperties.Hint="Guarda la consulta y la respuesta en el historial" />
+                        <Button Grid.Column="1" Text="Copiar" Command="{Binding CopyAnswerCommand}"
+                                Style="{StaticResource SecondaryButton}" />
+                        <Button Grid.Column="2" Text="Limpiar" Command="{Binding ClearCommand}"
+                                Style="{StaticResource SecondaryButton}" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

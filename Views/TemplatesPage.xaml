@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="AsistenteIA.Views.TemplatesPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:AsistenteIA.ViewModels"
+    xmlns:m="clr-namespace:AsistenteIA.Models"
+    x:DataType="vm:TemplatesViewModel"
+    Title="Plantillas">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12" MaximumWidthRequest="{StaticResource ContentMaxWidth}">
+
+            <Label Text="Plantillas de prompts" Style="{StaticResource PageTitle}" />
+            <Label Style="{StaticResource Caption}"
+                   Text="Use {tema} donde debe ir el tema de la consulta. Las plantillas se guardan en SQLite." />
+
+            <!-- Editor -->
+            <Border Style="{StaticResource Card}" IsVisible="{Binding IsEditing}">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="{Binding EditorTitle}" Style="{StaticResource SectionTitle}" />
+                    <Entry Text="{Binding Name}" Placeholder="Nombre de la plantilla" SemanticProperties.Description="Nombre de la plantilla" />
+                    <Picker Title="Categoría" ItemsSource="{Binding Categories}" SelectedItem="{Binding Category}" />
+                    <Editor Text="{Binding Text}" Placeholder="Texto de la plantilla con {tema}" AutoSize="TextChanges"
+                            MinimumHeightRequest="100" SemanticProperties.Description="Texto de la plantilla" />
+                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                        <Button Text="Guardar" Command="{Binding SaveCommand}" />
+                        <Button Grid.Column="1" Text="Cancelar" Command="{Binding CancelEditCommand}" Style="{StaticResource SecondaryButton}" />
+                        <Button Grid.Column="2" Text="Eliminar" Command="{Binding DeleteCommand}" Style="{StaticResource DangerButton}" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="{Binding StatusMessage}" Style="{StaticResource Caption}" FontAttributes="Bold"
+                   IsVisible="{Binding StatusMessage, Converter={StaticResource HasText}}" />
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <Button Text="Nueva plantilla" Command="{Binding NewCommand}" Style="{StaticResource AccentButton}" />
+                <Button Grid.Column="1" Text="Restaurar" Command="{Binding RestoreCommand}" Style="{StaticResource SecondaryButton}" />
+            </Grid>
+
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Templates}" Spacing="8">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="m:PromptTemplate">
+                        <Border Style="{StaticResource Card}" Padding="12"
+                                SemanticProperties.Description="{Binding Name}" SemanticProperties.Hint="Toque para editar">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding EditCommand, Source={RelativeSource AncestorType={x:Type vm:TemplatesViewModel}}, x:DataType=vm:TemplatesViewModel}"
+                                    CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+                            <VerticalStackLayout Spacing="4">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label Text="{Binding Name}" FontFamily="OpenSansSemibold" />
+                                    <Border Grid.Column="1" Style="{StaticResource Chip}">
+                                        <Label Text="{Binding Category}" FontSize="11" />
+                                    </Border>
+                                </Grid>
+                                <Label Text="{Binding Text}" Style="{StaticResource Caption}" MaxLines="3" LineBreakMode="TailTruncation" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
