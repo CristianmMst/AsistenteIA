@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="AsistenteIA.Views.HomePage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:AsistenteIA.ViewModels"
+    x:DataType="vm:HomeViewModel"
+    Title="Inicio">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="14" MaximumWidthRequest="{StaticResource ContentMaxWidth}">
+
+            <!-- Encabezado y propósito -->
+            <Border Style="{StaticResource Card}" BackgroundColor="{StaticResource Primary}" Stroke="{StaticResource Primary}">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                    <Image Source="logo.png" WidthRequest="64" HeightRequest="64"
+                           SemanticProperties.Description="Logotipo de AsistenteIA" />
+                    <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                        <Label Text="AsistenteIA" FontSize="26" FontFamily="OpenSansSemibold" TextColor="White"
+                               SemanticProperties.HeadingLevel="Level1" />
+                        <Label Text="Asistente académico móvil con inteligencia artificial" TextColor="#FDE7D2" FontSize="14" />
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+
+            <Label Style="{StaticResource Body}"
+                   Text="Escriba una consulta académica, elija una plantilla y reciba una respuesta generada por un modelo de IA mediante una API REST. Guarde las conversaciones en el historial local y márquelas como verificadas cuando las contraste con fuentes confiables." />
+
+            <!-- Estado -->
+            <Border Style="{StaticResource Card}">
+                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="10">
+                    <VerticalStackLayout SemanticProperties.Description="Conversaciones guardadas">
+                        <Label Text="{Binding TotalConversations}" FontSize="28" FontFamily="OpenSansSemibold" />
+                        <Label Text="Conversaciones guardadas" Style="{StaticResource Caption}" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="1" SemanticProperties.Description="Conversaciones verificadas">
+                        <Label Text="{Binding VerifiedConversations}" FontSize="28" FontFamily="OpenSansSemibold" />
+                        <Label Text="Verificadas" Style="{StaticResource Caption}" />
+                    </VerticalStackLayout>
+                    <Label Grid.Row="1" Text="{Binding KeyText}" Style="{StaticResource Caption}" FontAttributes="Bold" />
+                    <Label Grid.Row="1" Grid.Column="1" Text="{Binding NetworkText}" Style="{StaticResource Caption}" FontAttributes="Bold" />
+                </Grid>
+            </Border>
+
+            <!-- Accesos rápidos: FlexLayout se reacomoda en vertical/horizontal y pantallas grandes -->
+            <Label Text="Accesos rápidos" Style="{StaticResource SectionTitle}" />
+            <FlexLayout Wrap="Wrap" JustifyContent="SpaceBetween" AlignItems="Stretch">
+                <Button Text="Consultar IA" FlexLayout.Basis="48%" Margin="0,0,0,10"
+                        Command="{Binding GoCommand}" CommandParameter="chat"
+                        SemanticProperties.Hint="Abre la pantalla para preguntar a la IA" />
+                <Button Text="Historial" FlexLayout.Basis="48%" Margin="0,0,0,10"
+                        Command="{Binding GoCommand}" CommandParameter="history"
+                        SemanticProperties.Hint="Abre el historial de conversaciones guardadas" />
+                <Button Text="Configurar clave" FlexLayout.Basis="48%" Margin="0,0,0,10"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding GoCommand}" CommandParameter="settings"
+                        SemanticProperties.Hint="Abre la configuración de la clave de la API" />
+                <Button Text="Acerca de" FlexLayout.Basis="48%" Margin="0,0,0,10"
+                        Style="{StaticResource SecondaryButton}"
+                        Command="{Binding GoCommand}" CommandParameter="settings"
+                        SemanticProperties.Hint="Información de la aplicación, privacidad y límites" />
+            </FlexLayout>
+
+            <!-- Recomendaciones de uso -->
+            <Border Style="{StaticResource Notice}">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Recomendaciones de uso responsable" Style="{StaticResource SectionTitle}" />
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Recommendations}" Spacing="4">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <Label Text="{Binding StringFormat='• {0}'}" Style="{StaticResource Body}" FontSize="14" />
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

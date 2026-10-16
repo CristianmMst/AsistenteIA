@@ -1,0 +1,31 @@
+Base de datos: asistenteia.db3 (extraída del celular con adb run-as, 2026-10-15 19:31)
+
+CREATE TABLE "ConversationRecord" (
+"Id" integer primary key autoincrement not null ,
+"Prompt" varchar ,
+"Answer" varchar ,
+"CreatedAt" bigint ,
+"Category" varchar ,
+"IsVerified" integer ,
+"Model" varchar ,
+"Notes" varchar )
+
+CREATE TABLE "PromptTemplate" (
+"Id" integer primary key autoincrement not null ,
+"Name" varchar ,
+"Category" varchar ,
+"Text" varchar )
+
+SELECT Id, Prompt, Category, IsVerified, Model, Notes FROM ConversationRecord;
+1 | Explica que es una API REST en tres lineas | General | 1 | openai/gpt-5.4-nano | Contrastado con Microsoft Learn y MDN Web Docs
+4 | Genera cinco preguntas de repaso, con su respuesta breve, sobre el tema: el patron MVVM en .NET MAUI | Investigación | 0 | openai/gpt-5.4-nano | 
+
+SELECT seq FROM sqlite_sequence WHERE name="ConversationRecord";  -> 4
+
+SELECT Id, Name, Category FROM PromptTemplate;
+1 | Explicar un concepto para principiantes | General
+2 | Resumir un texto | Redacción
+3 | Revisar código C# | Programación
+4 | Preguntas de estudio | Investigación
+5 | Resolver paso a paso | Matemáticas
+6 | Comparar conceptos | General
