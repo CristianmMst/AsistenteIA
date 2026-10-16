@@ -1,0 +1,28 @@
+sequenceDiagram
+    autonumber
+    actor U as Usuario
+    participant V as ChatPage (XAML)
+    participant VM as ChatViewModel
+    participant AI as AiService
+    participant K as ApiKeyService
+    participant API as API Pollinations
+    participant DB as DatabaseService / SQLite
+    U->>V: Escribe el prompt y pulsa Consultar
+    V->>VM: AskCommand (binding)
+    VM->>VM: ValidatePrompt (5 a 2000 caracteres)
+    VM->>AI: AskAsync(prompt, modelo, token)
+    AI->>K: GetAsync() (SecureStorage)
+    K-->>AI: clave
+    AI->>API: POST /v1/chat/completions (JSON, Bearer)
+    alt 200 OK
+        API-->>AI: ChatResponse JSON
+        AI-->>VM: AiResult (respuesta, HTTP 200, ms)
+        VM-->>V: Answer, estado "Respuesta recibida"
+        U->>V: Pulsa Guardar
+        V->>VM: SaveCommand
+        VM->>DB: SaveAsync(ConversationRecord) INSERT
+    else 401 / 429 / 5xx / tiempo agotado / cancelación
+        API-->>AI: error
+        AI-->>VM: AiServiceException con mensaje claro
+        VM-->>V: StatusMessage en rojo
+    end
