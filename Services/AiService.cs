@@ -19,7 +19,11 @@ public class AiService
         "Eres un asistente académico. Responde en español de forma clara y breve, " +
         "indica incertidumbre y no inventes fuentes. Usa texto plano: sin Markdown ni LaTeX.";
 
-    private static readonly JsonSerializerOptions PrettyJson = new() { WriteIndented = true };
+    private static readonly JsonSerializerOptions PrettyJson = new()
+    {
+        WriteIndented = true,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping // tildes legibles en el registro
+    };
 
     private readonly HttpClient _client;
     private readonly ApiKeyService _keyService;
@@ -168,15 +172,19 @@ public class AiService
     public Task<AiResult> TestConnectionAsync(CancellationToken token = default) =>
         AskAsync("Responde únicamente con la palabra OK.", _settings.Model, token);
 
-    /// <summary>Modelos de texto gratuitos publicados por el proveedor (GET /models, catálogo público).</summary>
+    /// <summary>
+    /// Modelos de texto gratuitos y oficiales publicados por el proveedor (GET /models?source=official, catálogo público).
+    /// Se excluyen los modelos "community/*" de terceros por uso responsable.
+    /// </summary>
     public async Task<IReadOnlyList<string>> GetTextModelsAsync(CancellationToken token = default)
     {
-        var url = new Uri(new Uri(_settings.BaseUrl), "models");
+        var url = new Uri(new Uri(_settings.BaseUrl), "models?source=official");
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(token);
         cts.CancelAfter(TimeSpan.FromSeconds(20));
         ModelListResponse? list = await _client.GetFromJsonAsync<ModelListResponse>(url, cts.Token);
         return list?.Data
-            .Where(m => m.Category == "text" && !m.PaidOnly)
+            .Where(m => m.Category == "text" && !m.PaidOnly
+                        && !m.Id.StartsWith("community/", StringComparison.OrdinalIgnoreCase))
             .Select(m => m.Id)
             .OrderBy(id => id)
             .ToList() ?? [];
