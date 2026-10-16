@@ -4,6 +4,8 @@ Asistente académico móvil con inteligencia artificial. Proyecto final de **Pro
 
 **Integrantes:** Cristian Mora Moreno · Sebastián Sosa Martínez · Samuel Barato
 
+**Repositorio:** https://github.com/CristianmMst/AsistenteIA
+
 Aplicación .NET MAUI (Android) que envía consultas académicas a una API REST de IA (Pollinations, compatible con OpenAI Chat Completions), muestra la respuesta con estados de carga y error, guarda el historial en SQLite y permite marcar respuestas como verificadas.
 
 ## Funcionalidades
