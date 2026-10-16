@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using AsistenteIA.Models;
 using Microsoft.Extensions.Logging;
 
@@ -16,7 +17,7 @@ public class AiService
 
     public const string SystemPrompt =
         "Eres un asistente académico. Responde en español de forma clara y breve, " +
-        "indica incertidumbre y no inventes fuentes.";
+        "indica incertidumbre y no inventes fuentes. Usa texto plano: sin Markdown ni LaTeX.";
 
     private static readonly JsonSerializerOptions PrettyJson = new() { WriteIndented = true };
 
@@ -100,22 +101,32 @@ public class AiService
             string? answer = result?.Choices.FirstOrDefault()?.Message.Content;
 
             return new AiResult(
-                string.IsNullOrWhiteSpace(answer) ? "El servicio no devolvió contenido." : answer.Trim(),
+                string.IsNullOrWhiteSpace(answer) ? "El servicio no devolvió contenido." : ToPlainText(answer),
                 result?.Model ?? requestBody.Model,
                 (int)response.StatusCode,
                 sw.ElapsedMilliseconds,
                 result?.Usage?.TotalTokens ?? 0);
         }
-        catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested && !token.IsCancellationRequested)
+        // En Android, AndroidMessageHandler cierra el socket al cancelar y lanza WebException("Socket closed")
+        // en lugar de OperationCanceledException; por eso se decide por el estado de los tokens.
+        catch (Exception ex) when (ex is not AiServiceException
+                                   && timeoutCts.IsCancellationRequested && !token.IsCancellationRequested)
         {
             statusText = "Tiempo agotado";
             throw new AiServiceException(
                 $"Tiempo agotado: el servicio no respondió en {_settings.TimeoutSeconds} s. Puede reintentar.");
         }
-        catch (OperationCanceledException)
+        catch (Exception ex) when (ex is not AiServiceException && token.IsCancellationRequested)
         {
             statusText = "Cancelada por el usuario";
-            throw;
+            throw new OperationCanceledException("Consulta cancelada por el usuario.", ex, token);
+        }
+        catch (System.Net.WebException ex)
+        {
+            statusText = $"Error de red: {ex.Message}";
+            _logger.LogWarning(ex, "Fallo de red al llamar {Url}", url);
+            throw new AiServiceException(
+                "No fue posible contactar el servicio. Revise la conexión o intente más tarde.");
         }
         catch (HttpRequestException ex)
         {
@@ -194,6 +205,19 @@ public class AiService
             _ => $"Error del servicio ({n})."
         };
         return new AiServiceException(message, code, apiCode);
+    }
+
+    /// <summary>La interfaz muestra texto plano: se quitan marcas de Markdown y LaTeX que algunos modelos agregan.</summary>
+    public static string ToPlainText(string text)
+    {
+        string t = text.Replace("\r\n", "\n");
+        t = Regex.Replace(t, @"\*\*(.+?)\*\*", "$1");
+        t = Regex.Replace(t, @"__(.+?)__", "$1");
+        t = Regex.Replace(t, @"^#{1,6}\s*", "", RegexOptions.Multiline);
+        t = Regex.Replace(t, @"^\s*[-*]\s+", "• ", RegexOptions.Multiline);
+        t = Regex.Replace(t, @"\\[()\[\]]", "");
+        t = Regex.Replace(t, @"`{1,3}", "");
+        return t.Trim();
     }
 
     private static bool IsCertificateError(Exception ex)

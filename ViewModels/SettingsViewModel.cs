@@ -13,6 +13,7 @@ public partial class SettingsViewModel : ObservableObject
     private readonly AiService _aiService;
     private readonly SettingsService _settings;
     private readonly IDialogService _dialogs;
+    private readonly ApiLogService _apiLog;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(SaveKeyCommand))]
@@ -37,7 +38,7 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private bool showApiLog;
 
     public ObservableCollection<string> Models { get; } = [];
-    public ObservableCollection<ApiLogEntry> ApiLog { get; }
+    public ObservableCollection<ApiLogEntry> ApiLog { get; } = [];
 
     public string AppVersion => $"Versión {AppInfo.Current.VersionString} (compilación {AppInfo.Current.BuildString})";
     public string DatabasePath => DatabaseService.DatabasePath;
@@ -49,7 +50,19 @@ public partial class SettingsViewModel : ObservableObject
         _aiService = aiService;
         _settings = settings;
         _dialogs = dialogs;
-        ApiLog = apiLog.Entries;
+        _apiLog = apiLog;
+    }
+
+    /// <summary>La página deja de estar visible: se suelta el evento del singleton.</summary>
+    public void Detach() => _apiLog.Changed -= OnApiLogChanged;
+
+    private void OnApiLogChanged(object? sender, EventArgs e) =>
+        MainThread.BeginInvokeOnMainThread(RefreshApiLog);
+
+    private void RefreshApiLog()
+    {
+        ApiLog.Clear();
+        foreach (var entry in _apiLog.Snapshot()) ApiLog.Add(entry);
     }
 
     [RelayCommand]
@@ -59,6 +72,9 @@ public partial class SettingsViewModel : ObservableObject
         TimeoutSeconds = _settings.TimeoutSeconds.ToString();
         if (Models.Count == 0) Models.Add(_settings.Model);
         SelectedModel = _settings.Model;
+        _apiLog.Changed -= OnApiLogChanged;
+        _apiLog.Changed += OnApiLogChanged;
+        RefreshApiLog();
         await RefreshKeyStatusAsync();
     }
 

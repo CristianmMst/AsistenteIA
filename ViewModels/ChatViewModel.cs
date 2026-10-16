@@ -62,8 +62,13 @@ public partial class ChatViewModel : ObservableObject
         _settings = settings;
         _connectivity = connectivity;
         _dialogs = dialogs;
-        _connectivity.StatusChanged += (_, online) => MainThread.BeginInvokeOnMainThread(() => IsOffline = !online);
     }
+
+    /// <summary>La página deja de estar visible: se suelta el evento del singleton para no retener vistas.</summary>
+    public void Detach() => _connectivity.StatusChanged -= OnConnectivityChanged;
+
+    private void OnConnectivityChanged(object? sender, bool online) =>
+        MainThread.BeginInvokeOnMainThread(() => IsOffline = !online);
 
     /// <summary>Se ejecuta al mostrar la página: refresca modelo, plantillas y conectividad.</summary>
     [RelayCommand]
@@ -71,6 +76,8 @@ public partial class ChatViewModel : ObservableObject
     {
         SelectedModel = _settings.Model;
         IsOffline = !_connectivity.IsOnline;
+        _connectivity.StatusChanged -= OnConnectivityChanged;
+        _connectivity.StatusChanged += OnConnectivityChanged;
 
         int? selectedId = SelectedTemplate?.Id;
         Templates.Clear();

@@ -68,13 +68,13 @@
             </Grid>
 
             <!-- Estado de carga, respuesta o error (RF04) -->
-            <HorizontalStackLayout Spacing="10">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                 <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
                                    HeightRequest="24" WidthRequest="24" Color="{StaticResource Tertiary}" />
-                <Label Text="{Binding StatusMessage}" TextColor="{Binding Status, Converter={StaticResource StatusColor}}"
-                       FontSize="14" VerticalOptions="Center" LineBreakMode="WordWrap" MaximumWidthRequest="680"
+                <Label Grid.Column="1" Text="{Binding StatusMessage}" TextColor="{Binding Status, Converter={StaticResource StatusColor}}"
+                       FontSize="14" VerticalOptions="Center" LineBreakMode="WordWrap"
                        SemanticProperties.Description="Estado de la consulta" />
-            </HorizontalStackLayout>
+            </Grid>
 
             <!-- Respuesta -->
             <Border Style="{StaticResource Card}" IsVisible="{Binding HasAnswer}">

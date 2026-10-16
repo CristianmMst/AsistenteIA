@@ -83,7 +83,7 @@
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
                 <CollectionView.Footer>
-                    <BoxView HeightRequest="16" Color="Transparent" />
+                    <ContentView HeightRequest="16" />
                 </CollectionView.Footer>
             </CollectionView>
         </RefreshView>

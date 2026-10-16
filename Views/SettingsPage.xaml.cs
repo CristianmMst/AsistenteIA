@@ -17,4 +17,10 @@ public partial class SettingsPage : ContentPage
         base.OnAppearing();
         _viewModel.AppearingCommand.Execute(null);
     }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        _viewModel.Detach();
+    }
 }

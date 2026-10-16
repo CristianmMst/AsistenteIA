@@ -1,27 +1,34 @@
-using System.Collections.ObjectModel;
-
 namespace AsistenteIA.Services;
 
 /// <summary>
 /// Registro en memoria de las últimas solicitudes HTTP (método, URL, código, duración, cuerpos JSON).
 /// Sirve como evidencia del consumo REST. La cabecera Authorization se guarda enmascarada.
+/// Es un singleton: no expone colecciones enlazables para no retener vistas de ventanas ya destruidas;
+/// cada ViewModel toma una copia con <see cref="Snapshot"/> y escucha <see cref="Changed"/> solo mientras su página está visible.
 /// </summary>
 public class ApiLogService
 {
     private const int MaxEntries = 30;
 
-    public ObservableCollection<ApiLogEntry> Entries { get; } = [];
+    private readonly List<ApiLogEntry> _entries = [];
+    private readonly Lock _lock = new();
 
-    public ApiLogEntry? Last => Entries.FirstOrDefault();
+    public event EventHandler? Changed;
 
-    public void Add(ApiLogEntry entry) =>
-        MainThread.BeginInvokeOnMainThread(() =>
+    public IReadOnlyList<ApiLogEntry> Snapshot()
+    {
+        lock (_lock) return [.. _entries];
+    }
+
+    public void Add(ApiLogEntry entry)
+    {
+        lock (_lock)
         {
-            Entries.Insert(0, entry);
-            while (Entries.Count > MaxEntries) Entries.RemoveAt(Entries.Count - 1);
-        });
-
-    public void Clear() => MainThread.BeginInvokeOnMainThread(Entries.Clear);
+            _entries.Insert(0, entry);
+            if (_entries.Count > MaxEntries) _entries.RemoveAt(_entries.Count - 1);
+        }
+        Changed?.Invoke(this, EventArgs.Empty);
+    }
 }
 
 public class ApiLogEntry
