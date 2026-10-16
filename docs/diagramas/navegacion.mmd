@@ -1,0 +1,10 @@
+flowchart LR
+    T{{TabBar Shell}} --> H[Inicio]
+    T --> C[Consultar IA]
+    T --> HI[Historial]
+    T --> S[Configuración y Acerca de]
+    H -- accesos rápidos --> C & HI & S
+    HI -- "toque: DetailPage?id=N" --> D[Detalle]
+    C -- "Editar plantillas" --> P[Plantillas]
+    S -- "Administrar plantillas" --> P
+    D -- "Eliminar / Atrás" --> HI

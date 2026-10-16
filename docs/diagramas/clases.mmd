@@ -1,0 +1,129 @@
+classDiagram
+    direction TB
+    class ChatRequest {
+        +string Model
+        +List~ChatMessage~ Messages
+    }
+    class ChatMessage {
+        +string Role
+        +string Content
+    }
+    class ChatResponse {
+        +string Id
+        +string Model
+        +List~ChatChoice~ Choices
+        +ChatUsage Usage
+    }
+    class ChatChoice {
+        +ChatMessage Message
+        +string FinishReason
+    }
+    class ConversationRecord {
+        +int Id
+        +string Prompt
+        +string Answer
+        +DateTime CreatedAt
+        +string Category
+        +bool IsVerified
+        +string Model
+        +string Notes
+    }
+    class PromptTemplate {
+        +int Id
+        +string Name
+        +string Category
+        +string Text
+        +Apply(topic) string
+    }
+    class AiService {
+        +ValidatePrompt(prompt)$ string
+        +AskAsync(prompt, model, token) Task~AiResult~
+        +TestConnectionAsync() Task~AiResult~
+        +GetTextModelsAsync() Task~IReadOnlyList~
+        +ToPlainText(text)$ string
+    }
+    class DatabaseService {
+        +SaveAsync(record) Task~int~
+        +SearchAsync(text, category, onlyVerified) Task~List~
+        +GetByIdAsync(id) Task~ConversationRecord~
+        +UpdateAsync(record) Task~int~
+        +DeleteAsync(record) Task~int~
+        +GetTemplatesAsync() Task~List~
+        +SaveTemplateAsync(template) Task~int~
+    }
+    class ApiKeyService {
+        +SaveAsync(key) Task
+        +GetAsync() Task~string~
+        +Remove() bool
+        +Mask(key)$ string
+    }
+    class SettingsService {
+        +string BaseUrl
+        +string Model
+        +int TimeoutSeconds
+    }
+    class ConnectivityService {
+        +bool IsOnline
+        +event StatusChanged
+    }
+    class ApiLogService {
+        +Add(entry)
+        +Snapshot() IReadOnlyList
+        +event Changed
+    }
+    class IDialogService {
+        <<interface>>
+        +ConfirmAsync() Task~bool~
+        +AlertAsync() Task
+        +GoToAsync(route) Task
+    }
+    class ChatViewModel {
+        +string Prompt
+        +string Answer
+        +bool IsBusy
+        +AskCommand
+        +CancelCommand
+        +SaveCommand
+    }
+    class HistoryViewModel {
+        +ObservableCollection Records
+        +string SearchText
+        +LoadCommand
+        +DeleteCommand
+        +OpenCommand
+    }
+    class DetailViewModel {
+        +ConversationRecord Record
+        +bool IsVerified
+        +SaveCommand
+        +DeleteCommand
+    }
+    class SettingsViewModel {
+        +string ApiKeyInput
+        +SaveKeyCommand
+        +TestConnectionCommand
+        +RemoveKeyCommand
+    }
+    class HomeViewModel
+    class TemplatesViewModel
+
+    ChatRequest "1" *-- "many" ChatMessage
+    ChatResponse "1" *-- "many" ChatChoice
+    ChatChoice --> ChatMessage
+    AiService ..> ChatRequest : envía
+    AiService ..> ChatResponse : recibe
+    AiService --> ApiKeyService
+    AiService --> SettingsService
+    AiService --> ConnectivityService
+    AiService --> ApiLogService
+    DatabaseService ..> ConversationRecord : CRUD
+    DatabaseService ..> PromptTemplate : CRUD
+    ChatViewModel --> AiService
+    ChatViewModel --> DatabaseService
+    ChatViewModel --> IDialogService
+    HistoryViewModel --> DatabaseService
+    DetailViewModel --> DatabaseService
+    SettingsViewModel --> ApiKeyService
+    SettingsViewModel --> AiService
+    HomeViewModel --> DatabaseService
+    TemplatesViewModel --> DatabaseService
